@@ -1,0 +1,14 @@
+Config { 
+         font = "xft:Linux Libertine-10"
+       , bgColor = "black"
+       , fgColor = "grey"
+       , position = TopW L 100
+       , lowerOnStart = True
+       , commands = [ 
+                      Run StdinReader
+                    , Run TopProc ["-t", "<both1>%, <both2>%"] 10
+                    ]
+       , sepChar = "%"
+       , alignSep = "}{"
+       , template = "%StdinReader% }{ %top%"
+       }
