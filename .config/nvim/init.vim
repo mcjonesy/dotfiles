@@ -17,6 +17,9 @@ Plug 'vim-ctrlspace/vim-ctrlspace'
 " Commenting and uncommenting lines of code using ,cc and ,cu
 Plug 'scrooloose/nerdcommenter'
 
+" File explorer
+Plug 'scrooloose/nerdtree'
+
 " All sorts of things relating to surrounding text objects. Super useful with quotes
 Plug 'tpope/vim-surround'
 
@@ -42,12 +45,23 @@ Plug 'derekwyatt/vim-fswitch'
 " A better terminal experience
 Plug 'vimlab/split-term.vim'
 
+" Run commands as you type, REPL style! Works on C++ if you get Cling set up,
+" which is easy
+Plug 'metakirby5/codi.vim'
+
+" Reflowing arguments and parameters on to multiple lines
+Plug 'AndrewRadev/splitjoin.vim'
+
+" Visualises vim's undo tree
+Plug 'mbbill/undotree'
+
+"Plug 'huawenyu/neogdb.vim'
+
 """" Things to do
 " configure airline more
 " configure gitgutter more
 " add extra shortcuts for YCM code navigation and fixit tools
 " figure out how workspaces really work in ctrlspace
-" try codi with python and c++ (interpret as you type!)
 " try UltiSnips
 
 " Initialize plugin system
@@ -101,12 +115,13 @@ nmap \ :nohlsearch<CR>
 "Required by vim-ctrlspace
 set nocompatible
 set hidden
-"set showtabline=0
+set showtabline=0
 
 """"Convenient keymappings
-nmap <F7> :20Term ./configure.py -b Release -c -p 
+nmap <F7> :20Term ./configure.py --oclint -b Release -c -p 
 cmap <F7> embedded_estimator<CR>
-nmap <F8> :20Term ./build-tools/Fedora/build.py<CR>
+nmap <F8> :w<CR> :20Term ./build-tools/Fedora/build.py<CR>
+tmap <F8> <Esc><C-w><C-w>
 
 nmap <C-h> <C-w>h
 nmap <C-j> <C-w>j
@@ -115,17 +130,25 @@ nmap <C-l> <C-w>l
 
 nmap <F2> : call OpenUnderCursor()<CR>
 
+nmap  <buffer> <silent> k gk
+nmap  <buffer> <silent> j gj
+nmap  <buffer> <silent> 0 g0
+nmap  <buffer> <silent> $ g$
+
 """"I never use s anyway
 nmap s :w<CR>
+
+""""Persist undos between nvim sessions
+set undofile
 
 """""""" Easy align settings
 xmap ga <Plug>(EasyAlign)
 nmap ga <Plug>(EasyAlign)
 
 """""""" Vim-Ctrlspace settings
-if executable("ag")
-    let g:CtrlSpaceGlobCommand = 'ag -l --nocolor -g ""'
-endif
+"if executable("ag")
+    "let g:CtrlSpaceGlobCommand = 'ag -l --nocolor -g ""'
+"endif
 let g:CtrlSpaceSearchTiming = 1
 
 let g:CtrlSpaceDefaultMappingKey = "<C-p>"
@@ -133,6 +156,9 @@ let g:CtrlSpaceDefaultMappingKey = "<C-p>"
 let g:CtrlSpaceLoadLastWorkspaceOnStart = 1
 let g:CtrlSpaceSaveWorkspaceOnSwitch = 1
 let g:CtrlSpaceSaveWorkspaceOnExit = 1
+
+hi link CtrlSpaceSearch IncSearch
+hi link CtrlSpaceSelected StatusLine
 
 """""""" NerdCommenter settings
 let g:NERDTrimTrailingWhiteSpace = 1
@@ -149,7 +175,13 @@ let g:ycm_show_diagnostics_ui = 1
 let g:ycm_enable_diagnostic_highlighting = 1
 
 nmap <F12> :YcmCompleter GoTo<CR>
-nmap <F5> :YcmForceCompileAndDiagnostics<CR>
+nmap <F5>  :YcmForceCompileAndDiagnostics<CR>
+nmap <F3>  :YcmCompleter GetParent<CR>
+nmap <F4>  :YcmCompleter FixIt<CR>
+
+autocmd Filetype c,cpp,hpp nmap <CR>  :YcmCompleter GetType<CR>
+
+let g:ycm_always_populate_location_list = 1
 
 """""""" Airline
 let g:airline_powerline_fonts = 1
@@ -166,3 +198,44 @@ nmap <silent> <Leader>fh :FSSplitLeft<cr>
 
 """""""" split term
 set splitbelow
+
+"""""""" undotree
+nmap <F6> :UndotreeToggle<CR>
+
+"""""""" pretty print xml
+function! DoPrettyXML()
+  " save the filetype so we can restore it later
+  let l:origft = &ft
+  set ft=
+  " delete the xml header if it exists. This will
+  " permit us to surround the document with fake tags
+  " without creating invalid xml.
+  1s/<?xml .*?>//e
+  " insert fake tags around the entire document.
+  " This will permit us to pretty-format excerpts of
+  " XML that may contain multiple top-level elements.
+  0put ='<PrettyXML>'
+  $put ='</PrettyXML>'
+  silent %!xmllint --format -
+  " xmllint will insert an <?xml?> header. it's easy enough to delete
+  " if you don't want it.
+  " delete the fake tags
+  2d
+  $d
+  " restore the 'normal' indentation, which is one extra level
+  " too deep due to the extra tags we wrapped around the document.
+  silent %<
+  " back to home
+  1
+  " restore the filetype
+  exe "set ft=" . l:origft
+endfunction
+command! PrettyXML call DoPrettyXML()
+
+"""""""" Codi
+ let g:codi#interpreters = {
+       \ 'python3': {
+           \ 'bin': 'python3',
+           \ 'prompt': '^\(>>>\|\.\.\.\) ',
+           \ },
+       \ }
