@@ -1,0 +1,1 @@
+/home/simon/.config/fisherman/fasd/conf.d/aliases.fish

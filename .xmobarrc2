@@ -1,5 +1,5 @@
 Config { 
-         font = "xft:Linux Libertine-10"
+         font = "xft:Space Mono derivative Powerline-10"
        , bgColor = "black"
        , fgColor = "grey"
        , position = TopW L 100

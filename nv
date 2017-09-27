@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python2
 # -*- coding: utf-8 -*-
 import os
 import argparse
@@ -15,8 +15,8 @@ if __name__ == "__main__":
     session = socket_session(args.addr)
     nvim = Nvim.from_session(session)
 
-    if len(nvim.current.buffer.name)==0 or not os.path.samefile(nvim.current.buffer.name, args.file):
-        nvim.command("e {}".format(os.path.realpath(args.file)))
+    if not os.path.samefile(nvim.current.buffer.name, args.file):
+        nvim.command("tabe {}".format(args.file))
 
     nvim.current.window.cursor = (args.line, 0)
 
